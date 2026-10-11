@@ -140,7 +140,7 @@ class Game:
             "white": self.white,
             "black": self.black,
             "legalMoves": [m.uci for m in legal_moves(self.position)] if playing else [],
-            "check": playing and in_check(self.position),
+            "check": in_check(self.position),
             "lastMove": [square_name(last.start), square_name(last.end)] if last else None,
             "undoRequestedBy": self.undo_requested_by,
             "winner": self.winner,

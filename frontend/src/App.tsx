@@ -164,7 +164,7 @@ export default function App() {
         wins={wins(state[myColour])}
       />
 
-      <p className={`banner ${state.check ? 'alert' : ''}`}>{banner}</p>
+      <p className={`banner ${playing && state.check ? 'alert' : ''}`}>{banner}</p>
       {state.score.draws > 0 && <p className="draws">🤝 {state.score.draws} draws</p>}
       <nav className="controls">{controls}</nav>
       {error && <div className="toast" onClick={clearError}>{error}</div>}
