@@ -148,3 +148,16 @@ def test_one_request_at_a_time(playing):
     playing.make_request("ann", "undo")
     with pytest.raises(GameError):
         playing.make_request("bob", "draw")
+
+
+def test_saved_game_survives_restart(playing):
+    playing.move("ann", "e2e4")
+    playing.make_request("ann", "undo")
+    playing.save()
+    restored = Game.load(playing.results_path)
+    assert (restored.phase, restored.white, restored.black) == ("playing", "ann", "bob")
+    assert restored.moves == playing.moves and restored.request == ("undo", "ann")
+
+
+def test_no_saved_game_starts_fresh(tmp_path):
+    assert Game.load(tmp_path / "results.jsonl").phase == "idle"

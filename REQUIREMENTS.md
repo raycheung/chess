@@ -48,7 +48,7 @@
 ## Score
 - Every finished game is recorded with its date, players, colours and result.
 - The running score between the two players is shown and is kept permanently, even if the server restarts.
-- A game still in progress may be lost if the server restarts.
+- A game in progress, including any waiting undo request or draw offer, survives a server restart.
 
 ## iPhone
 - The game is played mainly on iPhone in Safari, held upright.

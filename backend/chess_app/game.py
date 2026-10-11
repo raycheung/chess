@@ -1,4 +1,5 @@
 import json
+import pickle
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -24,6 +25,22 @@ class Game:
     request: tuple[str, str] | None = None  # (kind "undo" | "draw", requesting user)
     winner: str | None = None
     reason: str | None = None
+
+    @classmethod
+    def load(cls, results_path: Path) -> "Game":
+        saved = results_path.with_name("game.pickle")
+        if not saved.exists():
+            return cls(results_path)
+        game = pickle.loads(saved.read_bytes())
+        game.results_path = results_path
+        return game
+
+    def save(self) -> None:
+        saved = self.results_path.with_name("game.pickle")
+        saved.parent.mkdir(parents=True, exist_ok=True)
+        partial = saved.with_suffix(".partial")
+        partial.write_bytes(pickle.dumps(self))
+        partial.replace(saved)
 
     @property
     def position(self) -> Position:

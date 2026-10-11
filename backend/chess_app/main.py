@@ -9,7 +9,7 @@ from .game import Game, GameError
 DEV = os.environ.get("CHESS_DEV") == "1"
 
 app = FastAPI()
-game = Game(Path(os.environ.get("CHESS_DATA", "data")) / "results.jsonl")
+game = Game.load(Path(os.environ.get("CHESS_DATA", "data")) / "results.jsonl")
 connections: dict[WebSocket, str] = {}
 
 
@@ -55,6 +55,7 @@ async def play(ws: WebSocket, name: str | None = None) -> None:
             except GameError as e:
                 await ws.send_json({"type": "error", "message": str(e)})
                 continue
+            game.save()
             await broadcast()
     except WebSocketDisconnect:
         pass
