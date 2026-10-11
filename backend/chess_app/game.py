@@ -21,7 +21,7 @@ class Game:
     black: str | None = None
     positions: list[Position] = field(default_factory=lambda: [parse_fen(START_FEN)])
     moves: list[Move] = field(default_factory=list)
-    undo_requested_by: str | None = None
+    request: tuple[str, str] | None = None  # (kind "undo" | "draw", requesting user)
     winner: str | None = None
     reason: str | None = None
 
@@ -44,7 +44,7 @@ class Game:
         self.black = user if colour == "black" else None
         self.positions = [parse_fen(START_FEN)]
         self.moves = []
-        self.undo_requested_by = self.winner = self.reason = None
+        self.request = self.winner = self.reason = None
 
     def join(self, user: str) -> None:
         if self.phase != "waiting":
@@ -73,7 +73,7 @@ class Game:
             raise GameError("Illegal move")
         self.positions.append(apply(self.position, move))
         self.moves.append(move)
-        self.undo_requested_by = None
+        self.request = None
         if reason := outcome(self.position) or self.threefold_repetition():
             mover = "white" if self.position.turn == "b" else "black"
             self.finish(mover if reason == "checkmate" else None, reason)
@@ -90,26 +90,33 @@ class Game:
     def undo_plies(self, user: str) -> int:
         return 1 if self.position.turn != self.side_of(user) else 2
 
-    def request_undo(self, user: str) -> None:
+    def make_request(self, user: str, kind: str) -> None:
         self.require_turn(user)
-        if len(self.moves) < self.undo_plies(user):
+        if kind not in ("undo", "draw"):
+            raise GameError("Unknown request")
+        if self.request:
+            raise GameError("Still waiting for an answer")
+        if kind == "undo" and len(self.moves) < self.undo_plies(user):
             raise GameError("Nothing to undo yet")
-        self.undo_requested_by = user
+        self.request = (kind, user)
 
-    def reply_undo(self, user: str, accept: bool) -> None:
+    def reply(self, user: str, accept: bool) -> None:
         self.require_turn(user)
-        requester = self.undo_requested_by
-        if requester is None or requester == user:
-            raise GameError("No undo request to answer")
-        if accept:
-            plies = self.undo_plies(requester)
-            del self.positions[-plies:]
-            del self.moves[-plies:]
-        self.undo_requested_by = None
+        if self.request is None or self.request[1] == user:
+            raise GameError("Nothing to answer")
+        kind, requester = self.request
+        self.request = None
+        if not accept:
+            return
+        if kind == "draw":
+            return self.finish(None, "agreement")
+        plies = self.undo_plies(requester)
+        del self.positions[-plies:]
+        del self.moves[-plies:]
 
     def finish(self, winner: str | None, reason: str) -> None:
         self.phase, self.winner, self.reason = "finished", winner, reason
-        self.undo_requested_by = None
+        self.request = None
         self.results_path.parent.mkdir(parents=True, exist_ok=True)
         record = {
             "date": datetime.now(UTC).isoformat(timespec="seconds"),
@@ -147,7 +154,7 @@ class Game:
             "legalMoves": [m.uci for m in legal_moves(self.position)] if playing else [],
             "check": in_check(self.position),
             "lastMove": [square_name(last.start), square_name(last.end)] if last else None,
-            "undoRequestedBy": self.undo_requested_by,
+            "request": {"kind": self.request[0], "by": self.request[1]} if self.request else None,
             "winner": self.winner,
             "reason": self.reason,
             "score": self.score(),

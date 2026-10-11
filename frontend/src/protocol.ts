@@ -1,4 +1,5 @@
 export type Colour = 'white' | 'black'
+export type RequestKind = 'undo' | 'draw'
 
 export type GameState = {
   type: 'state'
@@ -10,7 +11,7 @@ export type GameState = {
   legalMoves: string[]
   check: boolean
   lastMove: [string, string] | null
-  undoRequestedBy: string | null
+  request: { kind: RequestKind; by: string } | null
   winner: Colour | null
   reason: string | null
   score: { wins: Record<string, number>; draws: number }
@@ -23,5 +24,5 @@ export type ClientMessage =
   | { type: 'join' }
   | { type: 'move'; uci: string }
   | { type: 'resign' }
-  | { type: 'undo_request' }
-  | { type: 'undo_reply'; accept: boolean }
+  | { type: 'request'; kind: RequestKind }
+  | { type: 'reply'; accept: boolean }

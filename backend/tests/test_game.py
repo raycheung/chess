@@ -63,43 +63,43 @@ def test_moves_only_on_own_turn(playing):
 
 def test_undo_before_reply_takes_back_one_move(playing):
     playing.move("ann", "e2e4")
-    playing.request_undo("ann")
-    playing.reply_undo("bob", True)
+    playing.make_request("ann", "undo")
+    playing.reply("bob", True)
     assert len(playing.moves) == 0
 
 
 def test_undo_after_reply_takes_back_two_moves(playing):
     playing.move("ann", "e2e4")
     playing.move("bob", "e7e5")
-    playing.request_undo("ann")
-    playing.reply_undo("bob", True)
+    playing.make_request("ann", "undo")
+    playing.reply("bob", True)
     assert len(playing.moves) == 0 and playing.position.turn == "w"
 
 
 def test_declined_undo_changes_nothing(playing):
     playing.move("ann", "e2e4")
-    playing.request_undo("ann")
-    playing.reply_undo("bob", False)
-    assert len(playing.moves) == 1 and playing.undo_requested_by is None
+    playing.make_request("ann", "undo")
+    playing.reply("bob", False)
+    assert len(playing.moves) == 1 and playing.request is None
 
 
 def test_move_cancels_undo_request(playing):
     playing.move("ann", "e2e4")
-    playing.request_undo("ann")
+    playing.make_request("ann", "undo")
     playing.move("bob", "e7e5")
-    assert playing.undo_requested_by is None
+    assert playing.request is None
 
 
 def test_cannot_answer_own_undo_request(playing):
     playing.move("ann", "e2e4")
-    playing.request_undo("ann")
+    playing.make_request("ann", "undo")
     with pytest.raises(GameError):
-        playing.reply_undo("ann", True)
+        playing.reply("ann", True)
 
 
 def test_nothing_to_undo_at_start(playing):
     with pytest.raises(GameError):
-        playing.request_undo("ann")
+        playing.make_request("ann", "undo")
 
 
 def test_checkmate_finishes_and_records(playing):
@@ -108,7 +108,7 @@ def test_checkmate_finishes_and_records(playing):
         playing.move(user, uci)
     assert (playing.phase, playing.winner, playing.reason) == ("finished", "white", "checkmate")
     with pytest.raises(GameError):
-        playing.request_undo("bob")
+        playing.make_request("bob", "undo")
     assert playing.score() == {"wins": {"ann": 1}, "draws": 0}
 
 
@@ -128,3 +128,23 @@ def test_threefold_repetition_is_a_draw(playing):
     for user, uci in shuffle:
         playing.move(user, uci)
     assert (playing.phase, playing.winner, playing.reason) == ("finished", None, "threefold repetition")
+
+
+def test_accepted_draw_offer_ends_game(playing):
+    playing.make_request("bob", "draw")
+    playing.reply("ann", True)
+    assert (playing.phase, playing.winner, playing.reason) == ("finished", None, "agreement")
+    assert playing.score() == {"wins": {}, "draws": 1}
+
+
+def test_declined_draw_offer_keeps_playing(playing):
+    playing.make_request("ann", "draw")
+    playing.reply("bob", False)
+    assert playing.phase == "playing" and playing.request is None
+
+
+def test_one_request_at_a_time(playing):
+    playing.move("ann", "e2e4")
+    playing.make_request("ann", "undo")
+    with pytest.raises(GameError):
+        playing.make_request("bob", "draw")

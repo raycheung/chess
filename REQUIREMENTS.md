@@ -29,10 +29,17 @@
 - A pending undo request is cancelled if a move is made or the opponent declines.
 - Undo is not available after the game has ended.
 
+## Draw offer
+- During a game, either player can offer a draw.
+- The opponent is asked to accept or decline. If they accept, the game ends as a draw.
+- A pending offer is cancelled if a move is made or the opponent declines.
+- Only one undo request or draw offer can be waiting at a time.
+
 ## Ending a game
-- A game ends in one of three ways:
+- A game ends in one of these ways:
   - checkmate, which is a win
   - resignation, which is a win for the opponent
+  - a draw by agreement
   - a draw by stalemate, the fifty-move rule, insufficient material, or the same position occurring three times
 - When a game ends, both players see the result and why it ended.
 - The next game can then be started by either player, who again chooses their colour.

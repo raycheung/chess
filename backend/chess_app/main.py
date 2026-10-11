@@ -23,10 +23,10 @@ def handle(user: str, message: dict) -> None:
             game.move(user, uci)
         case {"type": "resign"}:
             game.resign(user)
-        case {"type": "undo_request"}:
-            game.request_undo(user)
-        case {"type": "undo_reply", "accept": bool(accept)}:
-            game.reply_undo(user, accept)
+        case {"type": "request", "kind": str(kind)}:
+            game.make_request(user, kind)
+        case {"type": "reply", "accept": bool(accept)}:
+            game.reply(user, accept)
         case _:
             raise GameError("Unknown message")
 

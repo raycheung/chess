@@ -18,6 +18,10 @@ The ranks run from 8 down to 1, digits mean "this many empty squares", then come
 
 > **Try this:** what number is square `h1`? `a8`? Write a formula that turns a number back into a name.
 
+To spot a **threefold repetition** (a draw), the game remembers every position and counts how many times the current one has appeared. Two positions are "the same" only if the pieces, whose turn it is, and castling rights all match.
+
+> **Try this:** play knight out, knight back, twice each. On which move does the game end, and why that one?
+
 ## 2. Moves are arrows — `rules.py`
 
 A knight's jumps are eight arrows: `(1, 2)`, `(2, 1)`, `(2, -1)` … meaning "one file right, two ranks up" and so on. A rook uses four arrows but keeps sliding until it hits something. A queen is just a rook plus a bishop.
@@ -47,7 +51,7 @@ Notice how fast it grows: about 20× and then 22× each step. That's **exponenti
 
 ## 4. Tests are promises — `tests/test_rules.py`, `tests/test_game.py`
 
-Each test is a tiny story: "set up this position, do this, the result must be that". Run `uv run pytest` and all 38 run in about 3 seconds. Change a rule by mistake and a test goes red immediately.
+Each test is a tiny story: "set up this position, do this, the result must be that". Run `uv run pytest` and they all run in about 3 seconds. Change a rule by mistake and a test goes red immediately.
 
 > **Try this:** break something on purpose. Delete `"K"` from `CASTLES` in `rules.py` and run the tests. Which ones fail? Put it back.
 

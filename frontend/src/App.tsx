@@ -10,6 +10,7 @@ const REASONS: Record<string, string> = {
   'fifty-move rule': '50 moves, no captures',
   'insufficient material': 'not enough pieces to mate',
   'threefold repetition': 'same position 3 times',
+  agreement: 'agreed',
 }
 
 function seatOf(state: GameState): Colour | null {
@@ -65,7 +66,8 @@ export default function App() {
   const playing = state.phase === 'playing'
   const myTurn = playing && seat === turn
   const wins = (name: string | null) => (name ? state.score.wins[name] ?? 0 : 0)
-  const undoFromOpponent = playing && state.undoRequestedBy !== null && state.undoRequestedBy !== state.you
+  const request = playing ? state.request : null
+  const myRequest = request?.by === state.you ? request.kind : null
   const iWon = state.phase === 'finished' && state.winner === seat
 
   const banner = (() => {
@@ -100,23 +102,27 @@ export default function App() {
       )
     }
     if (!seat) return null
-    if (undoFromOpponent) {
+    if (request && !myRequest) {
+      const undo = request.kind === 'undo'
       return (
         <>
-          <span className="ask">{state.undoRequestedBy} wants to undo</span>
-          <button className="btn primary" onClick={() => send({ type: 'undo_reply', accept: true })}>Allow ↩</button>
-          <button className="btn" onClick={() => send({ type: 'undo_reply', accept: false })}>Nope</button>
+          <span className="ask">{request.by} {undo ? 'wants to undo' : 'offers a draw 🤝'}</span>
+          <button className="btn primary" onClick={() => send({ type: 'reply', accept: true })}>
+            {undo ? 'Allow ↩' : 'Accept 🤝'}
+          </button>
+          <button className="btn" onClick={() => send({ type: 'reply', accept: false })}>
+            {undo ? 'Nope' : 'Play on'}
+          </button>
         </>
       )
     }
     return (
       <>
-        <button
-          className="btn"
-          disabled={state.undoRequestedBy === state.you}
-          onClick={() => send({ type: 'undo_request' })}
-        >
-          {state.undoRequestedBy === state.you ? 'Undo asked…' : 'Undo ↩'}
+        <button className="btn" disabled={myRequest !== null} onClick={() => send({ type: 'request', kind: 'undo' })}>
+          {myRequest === 'undo' ? 'Asked…' : 'Undo ↩'}
+        </button>
+        <button className="btn" disabled={myRequest !== null} onClick={() => send({ type: 'request', kind: 'draw' })}>
+          {myRequest === 'draw' ? 'Offered…' : 'Draw? 🤝'}
         </button>
         <button
           className={`btn ${confirmResign ? 'danger' : ''}`}
@@ -127,7 +133,7 @@ export default function App() {
           }}
           onBlur={() => setConfirmResign(false)}
         >
-          {confirmResign ? 'Really give up?' : 'Resign 🏳️'}
+          {confirmResign ? 'Sure?' : 'Resign 🏳️'}
         </button>
       </>
     )
@@ -166,7 +172,9 @@ export default function App() {
       />
 
       <p className={`banner ${playing && state.check ? 'alert' : ''}`}>{banner}</p>
-      {state.score.draws > 0 && <p className="draws">🤝 {state.score.draws} draws</p>}
+      {state.score.draws > 0 && (
+        <p className="draws">🤝 {state.score.draws} draw{state.score.draws === 1 ? '' : 's'}</p>
+      )}
       <nav className="controls">{controls}</nav>
       {error && <div className="toast" onClick={clearError}>{error}</div>}
     </main>
