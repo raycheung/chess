@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 from .board import START_FEN, Position, parse_fen, square_name, to_fen
@@ -107,7 +107,7 @@ class Game:
         self.undo_requested_by = None
         self.results_path.parent.mkdir(parents=True, exist_ok=True)
         record = {
-            "date": datetime.now().isoformat(timespec="seconds"),
+            "date": datetime.now(UTC).isoformat(timespec="seconds"),
             "white": self.white,
             "black": self.black,
             "winner": winner,
