@@ -2,7 +2,8 @@
 
 ## Players
 - Only two people can play: the two boys.
-- Each player must sign in before seeing the game. Anyone else is turned away.
+- Each player must sign in before playing. Anyone else who signs in stays on the game page and sees a message that they can't play, never an error page.
+- People who can't play never see the players' names, the score, or the game in progress.
 - The game always shows who is playing white and who is playing black.
 - A player's seat belongs to them for the whole game. Signing in again, reloading, or opening the game on another device resumes the same game with the same colour.
 - One player can never play both sides. The player who started a game cannot also join it as the opponent.

@@ -294,6 +294,10 @@ h1 {
 
 .btn {
   flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
   min-height: 52px;
   padding: 0 16px;
   border: 0;

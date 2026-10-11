@@ -5,13 +5,28 @@ export function useGame() {
   const [state, setState] = useState<GameState | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [connected, setConnected] = useState(false)
+  const [denied, setDenied] = useState(false)
   const socket = useRef<WebSocket | null>(null)
 
   useEffect(() => {
     let retries = 0
+    let attempt = 0
     let timer: number | undefined
 
-    const connect = () => {
+    const connect = async () => {
+      const current = ++attempt
+      const auth = await fetch('/oauth2/auth').catch(() => null)
+      if (current !== attempt) return
+      if (auth?.status === 401) {
+        if (new URLSearchParams(location.search).has('denied')) return setDenied(true)
+        location.href = `/oauth2/start?rd=${encodeURIComponent(location.pathname)}`
+        return
+      }
+      const params = new URLSearchParams(location.search)
+      if (params.has('denied')) {
+        params.delete('denied')
+        history.replaceState(null, '', `${location.pathname}${params.size ? `?${params}` : ''}`)
+      }
       const scheme = location.protocol === 'https:' ? 'wss' : 'ws'
       const ws = new WebSocket(`${scheme}://${location.host}/ws${location.search}`)
       socket.current = ws
@@ -50,6 +65,7 @@ export function useGame() {
     window.addEventListener('online', reconnectNow)
     window.addEventListener('pageshow', onPageShow)
     return () => {
+      attempt++
       clearTimeout(timer)
       document.removeEventListener('visibilitychange', reconnectNow)
       window.removeEventListener('online', reconnectNow)
@@ -64,5 +80,5 @@ export function useGame() {
 
   const clearError = useCallback(() => setError(null), [])
 
-  return { state, error, connected, send, clearError }
+  return { state, error, connected, denied, send, clearError }
 }

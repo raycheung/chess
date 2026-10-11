@@ -3,6 +3,8 @@ import { Board } from './Board'
 import type { Colour, GameState } from './protocol'
 import { useGame } from './useGame'
 
+const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+
 const REASONS: Record<string, string> = {
   checkmate: 'by checkmate',
   resignation: 'by resignation',
@@ -48,7 +50,7 @@ function Confetti() {
 }
 
 export default function App() {
-  const { state, error, connected, send, clearError } = useGame()
+  const { state, error, connected, denied, send, clearError } = useGame()
   const [confirmResign, setConfirmResign] = useState(false)
 
   useEffect(() => {
@@ -56,6 +58,24 @@ export default function App() {
     const timer = setTimeout(clearError, 3000)
     return () => clearTimeout(timer)
   }, [error, clearError])
+
+  if (denied) {
+    return (
+      <main className="app">
+        <header>
+          <h1>♞ Chess Arena</h1>
+        </header>
+        <div className="board-wrap">
+          <Board fen={START_FEN} flipped={false} myColour={null} legalMoves={[]} lastMove={null} check={false} onMove={() => {}} />
+        </div>
+        <p className="banner">🚫 This account isn't on the player list</p>
+        <p className="draws">Sign out to try a different account.</p>
+        <nav className="controls">
+          <a className="btn primary" href="/oauth2/start?rd=/">Try again</a>
+        </nav>
+      </main>
+    )
+  }
 
   if (!state) return <div className="splash">♞ Connecting…</div>
 
