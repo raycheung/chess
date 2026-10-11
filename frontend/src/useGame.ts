@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ClientMessage, GameState, ServerMessage } from './protocol'
 
+export type SignInProblem = 'denied' | 'retry'
+const PROBLEMS: SignInProblem[] = ['denied', 'retry']
+
 export function useGame() {
   const [state, setState] = useState<GameState | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [connected, setConnected] = useState(false)
-  const [denied, setDenied] = useState(false)
+  const [signInProblem, setSignInProblem] = useState<SignInProblem | null>(null)
   const socket = useRef<WebSocket | null>(null)
 
   useEffect(() => {
@@ -17,14 +20,15 @@ export function useGame() {
       const current = ++attempt
       const auth = await fetch('/oauth2/auth').catch(() => null)
       if (current !== attempt) return
+      const params = new URLSearchParams(location.search)
+      const problem = PROBLEMS.find((p) => params.has(p))
       if (auth?.status === 401) {
-        if (new URLSearchParams(location.search).has('denied')) return setDenied(true)
+        if (problem) return setSignInProblem(problem)
         location.href = `/oauth2/start?rd=${encodeURIComponent(location.pathname)}`
         return
       }
-      const params = new URLSearchParams(location.search)
-      if (params.has('denied')) {
-        params.delete('denied')
+      if (problem) {
+        PROBLEMS.forEach((p) => params.delete(p))
         history.replaceState(null, '', `${location.pathname}${params.size ? `?${params}` : ''}`)
       }
       const scheme = location.protocol === 'https:' ? 'wss' : 'ws'
@@ -80,5 +84,5 @@ export function useGame() {
 
   const clearError = useCallback(() => setError(null), [])
 
-  return { state, error, connected, denied, send, clearError }
+  return { state, error, connected, signInProblem, send, clearError }
 }

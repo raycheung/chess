@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Board } from './Board'
 import type { Colour, GameState } from './protocol'
-import { useGame } from './useGame'
+import { type SignInProblem, useGame } from './useGame'
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+
+const SIGN_IN_PROBLEMS: Record<SignInProblem, [string, string]> = {
+  denied: ["🚫 This account isn't on the player list", 'Sign out to try a different account.'],
+  retry: ["😵 Sign-in didn't finish", 'Tap Try again to sign in.'],
+}
 
 const REASONS: Record<string, string> = {
   checkmate: 'by checkmate',
@@ -50,7 +55,7 @@ function Confetti() {
 }
 
 export default function App() {
-  const { state, error, connected, denied, send, clearError } = useGame()
+  const { state, error, connected, signInProblem, send, clearError } = useGame()
   const [confirmResign, setConfirmResign] = useState(false)
 
   useEffect(() => {
@@ -59,7 +64,7 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [error, clearError])
 
-  if (denied) {
+  if (signInProblem) {
     return (
       <main className="app">
         <header>
@@ -68,8 +73,8 @@ export default function App() {
         <div className="board-wrap">
           <Board fen={START_FEN} flipped={false} myColour={null} legalMoves={[]} lastMove={null} check={false} onMove={() => {}} />
         </div>
-        <p className="banner">🚫 This account isn't on the player list</p>
-        <p className="draws">Sign out to try a different account.</p>
+        <p className="banner">{SIGN_IN_PROBLEMS[signInProblem][0]}</p>
+        <p className="draws">{SIGN_IN_PROBLEMS[signInProblem][1]}</p>
         <nav className="controls">
           <a className="btn primary" href="/oauth2/start?rd=/">Try again</a>
         </nav>
