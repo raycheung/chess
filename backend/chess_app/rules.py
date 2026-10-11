@@ -176,3 +176,10 @@ def outcome(pos: Position) -> str | None:
     if insufficient_material(pos.board):
         return "insufficient material"
     return None
+
+
+def repetition_key(pos: Position) -> tuple:
+    en_passant_possible = any(
+        m.end == pos.en_passant and pos.board[m.start].lower() == "p" for m in legal_moves(pos)
+    )
+    return pos.board, pos.turn, pos.castling, pos.en_passant if en_passant_possible else None

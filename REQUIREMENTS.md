@@ -33,7 +33,7 @@
 - A game ends in one of three ways:
   - checkmate, which is a win
   - resignation, which is a win for the opponent
-  - a draw by stalemate, the fifty-move rule, or insufficient material
+  - a draw by stalemate, the fifty-move rule, insufficient material, or the same position occurring three times
 - When a game ends, both players see the result and why it ended.
 - The next game can then be started by either player, who again chooses their colour.
 

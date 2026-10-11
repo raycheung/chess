@@ -9,6 +9,7 @@ const REASONS: Record<string, string> = {
   stalemate: 'stalemate',
   'fifty-move rule': '50 moves, no captures',
   'insufficient material': 'not enough pieces to mate',
+  'threefold repetition': 'same position 3 times',
 }
 
 function seatOf(state: GameState): Colour | null {

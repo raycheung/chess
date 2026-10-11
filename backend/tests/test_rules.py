@@ -1,5 +1,5 @@
 from chess_app.board import START_FEN, parse_fen, to_fen
-from chess_app.rules import Move, apply, legal_moves, outcome
+from chess_app.rules import Move, apply, legal_moves, outcome, repetition_key
 
 
 def ucis(fen):
@@ -71,3 +71,8 @@ def test_insufficient_material():
     assert outcome(parse_fen("4k3/8/8/8/8/8/8/2B1K3 w - - 0 1")) == "insufficient material"
     assert outcome(parse_fen("4kb2/8/8/8/8/8/8/2B1K3 w - - 0 1")) == "insufficient material"
     assert outcome(parse_fen("4k3/8/8/8/8/8/8/R3K3 w - - 0 1")) is None
+
+
+def test_en_passant_only_counts_for_repetition_when_capturable():
+    assert repetition_key(play(START_FEN, "e2e4"))[3] is None
+    assert repetition_key(play("4k3/3p4/8/4P3/8/8/8/4K3 b - - 0 1", "d7d5"))[3] == 43

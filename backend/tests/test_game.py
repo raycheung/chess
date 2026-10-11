@@ -118,3 +118,13 @@ def test_resign_and_next_game(playing):
     assert (record["winner"], record["reason"]) == ("black", "resignation")
     playing.start("ann", "black")
     assert playing.phase == "waiting" and playing.moves == []
+
+
+def test_threefold_repetition_is_a_draw(playing):
+    shuffle = [("ann", "g1f3"), ("bob", "g8f6"), ("ann", "f3g1"), ("bob", "f6g8")]
+    for user, uci in shuffle:
+        playing.move(user, uci)
+    assert playing.phase == "playing"
+    for user, uci in shuffle:
+        playing.move(user, uci)
+    assert (playing.phase, playing.winner, playing.reason) == ("finished", None, "threefold repetition")

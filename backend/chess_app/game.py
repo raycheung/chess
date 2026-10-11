@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from .board import START_FEN, Position, parse_fen, square_name, to_fen
-from .rules import Move, apply, in_check, legal_moves, outcome
+from .rules import Move, apply, in_check, legal_moves, outcome, repetition_key
 
 SIDES = {"white": "w", "black": "b"}
 
@@ -74,9 +74,14 @@ class Game:
         self.positions.append(apply(self.position, move))
         self.moves.append(move)
         self.undo_requested_by = None
-        if reason := outcome(self.position):
+        if reason := outcome(self.position) or self.threefold_repetition():
             mover = "white" if self.position.turn == "b" else "black"
             self.finish(mover if reason == "checkmate" else None, reason)
+
+    def threefold_repetition(self) -> str | None:
+        key = repetition_key(self.position)
+        seen = sum(repetition_key(p) == key for p in self.positions)
+        return "threefold repetition" if seen >= 3 else None
 
     def resign(self, user: str) -> None:
         side = self.require_turn(user)
